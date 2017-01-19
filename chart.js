@@ -14,23 +14,6 @@ d3.json (dataUrl, function (json) {
     drawSvgBarChart (vals);
 })
 
-function drawBarChart (data) {
-    var x = d3.scaleLinear()
-    .domain([0, d3.max(data)])
-    .range([0, 420]);
-    
-    d3.select ("body").append ('div')
-        .attr ('id', 'chart');
-    console.log (document.getElementById ('chart'))
-    d3.select ('#chart')
-        .selectAll ('div')
-        .data (data)
-        .enter ().append ('div')
-            .attr ('class', 'bar')
-            .style ("width", function(d) { return x (d) + "px"; })
-            .text(function(d) { return d; });
-}
-
 function showError () {    
         d3.select ('body').append ('div')
             .text ('Data could not be loaded from server');
@@ -38,30 +21,43 @@ function showError () {
 
 function drawSvgBarChart (data) {
    
+    var margin = {
+        top: 20, right: 20, bottom: 30, left: 20
+    }
     
     var chart = {
-        width: 800,
-        height: 500
+        width: 800 - (margin.right + margin.left),
+        height: 500 - (margin.top + margin.bottom)
     },
         barWidth = chart.width / data.length,
-        x = d3.scaleLinear()
+        yScale = d3.scaleLinear()
             .domain([0, d3.max(data)])
-            .range([0, chart.height]);
+            .rangeRound ([0, chart.height]),
+    
+        yScaleInv = d3.scaleLinear()
+            .domain ([0, d3.max(data)])
+            .rangeRound ([chart.height, 0]);
+    
+    var yAxis = d3.axisLeft (yScaleInv)
     
     d3.select ('body')
         .append ('svg')
         .attr ('class', 'chart')
         .attr ('width', chart.width)
-        .attr ('height', chart.height);
+        .attr ('height', chart.height)
+        .attr ('transform', 'translate (' + margin.left + ',' + margin.top + ')')
+        .append ('g')
+        .attr ('transform', 'translate (' + margin.left * 2 + ',0)')
+        .call (yAxis);
     
     var bars = d3.select ('.chart')
         .selectAll ('g')
         .data (data)
         .enter ().append ('g')
         .attr ('class', 'bar')
-        .attr ('transform', function (d, i) { return 'translate(' + i * barWidth + ',' + chart.height + ') scale(1,' + '-1)'});
+        .attr ('transform', function (d, i) { return 'translate(' + (i * barWidth + margin.left) + ',' + chart.height + ') scale(1,' + '-1)'});
         
     bars.append ('rect')
         .attr ('width', barWidth)
-        .attr ('height', x);
+        .attr ('height', yScale);
 }
