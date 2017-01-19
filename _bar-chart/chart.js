@@ -1,8 +1,8 @@
 var dataUrl = 'https://raw.githubusercontent.com/FreeCodeCamp/ProjectReferenceData/master/GDP-data.json';
-d3.select ("h1")
-    .style ("color", "red");
-d3.json (dataUrl, function (json) {
-            console.log (json.errors)
+d3.select("h1")
+    .style("color", "red");
+d3.json(dataUrl, function (json) {
+            console.log (json.errors);
 
     if (!json.data || json.data.length === 0) {
         showError ();
@@ -25,23 +25,19 @@ function drawSvgBarChart (data) {
         top: 20, right: 20, bottom: 30, left: 20
     }
     
-    var chart = {
-        width: 800 - (margin.right + margin.left),
-        height: 500 - (margin.top + margin.bottom)
+    var svg = d3.select ('svg'),
+        chart = {
+        width: +svg.attr ('width') - (margin.right + margin.left),
+        height: +svg.attr ('height') - (margin.top + margin.bottom)
     },
         barWidth = chart.width / data.length,
-        yScale = d3.scaleLinear()
+        yScale = d3.scaleLinear ()
             .domain([0, d3.max(data)])
-            .rangeRound ([0, chart.height]),
-    
-        yScaleInv = d3.scaleLinear()
-            .domain ([0, d3.max(data)])
             .rangeRound ([chart.height, 0]);
     
-    var yAxis = d3.axisLeft (yScaleInv)
-    
-    d3.select ('body')
-        .append ('svg')
+    var yAxis = d3.axisLeft (yScale)
+    var c = svg
+        .append ('g')
         .attr ('class', 'chart')
         .attr ('width', chart.width)
         .attr ('height', chart.height)
@@ -50,14 +46,16 @@ function drawSvgBarChart (data) {
         .attr ('transform', 'translate (' + margin.left * 2 + ',0)')
         .call (yAxis);
     
-    var bars = d3.select ('.chart')
-        .selectAll ('g')
+    var bars = c
+        .selectAll ('.bar')
         .data (data)
-        .enter ().append ('g')
-        .attr ('class', 'bar')
-        .attr ('transform', function (d, i) { return 'translate(' + (i * barWidth + margin.left) + ',' + chart.height + ') scale(1,' + '-1)'});
-        
-    bars.append ('rect')
+        .enter ().append ('rect')
         .attr ('width', barWidth)
-        .attr ('height', yScale);
+        .attr ('height', function (d) {
+            return chart.height - yScale (d); })
+        .attr ('class', 'bar')
+//        .attr ('transform', function (d, i) { return 'translate(' + (i * barWidth + margin.left) + ',' + chart.height + ') scale(1,' + '-1)'});
+        .attr ('x', function (d, i) { return i * barWidth; })
+        .attr ('y', function (d) { return yScale (d)});
+        
 }
